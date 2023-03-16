@@ -47,10 +47,9 @@
 
 static const char *TAG = "MS5837 main";
 
-extern "C" void app_main(void)
+void MS5837_harness(void *pvParameter)
 {
-    ESP_LOGI(TAG, "Main started");
-
+    
     MS5837 MS5837;  // create a default object
 
     // Initialize I2C on port 0 using I2Cbus interface
@@ -63,4 +62,25 @@ extern "C" void app_main(void)
     } else {
         ESP_LOGI(TAG, "MS5837 initialisation passed");
     }
+
+    // Check the pressure sensor model
+    // Note at least one device returned no ID, so mis-characterised as 02BA
+    if (MS5837.getModel() != MS5837_30BA)
+    {
+        ESP_LOGI(TAG, "Current MS5837 model unexpected.  Setting to version 30BA");
+        MS5837.setModel(MS5837_30BA);
+    }
+
+    ESP_LOGI(TAG, "Current sea level air pressure set to %4.2f",MS5837.getSeaLevelAirPressure());
+
+    while(1) {
+        MS5837.read();
+        ESP_LOGI(TAG, "Pressure %5.4f , temp %2.4f ",MS5837.pressure(), MS5837.temperature());
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+extern "C" void app_main(void)
+{
+    xTaskCreatePinnedToCore(MS5837_harness, "harness", 4096*2, NULL, 1, NULL, 1);
 }
