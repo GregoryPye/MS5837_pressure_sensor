@@ -68,8 +68,11 @@ public:
 	bool initialize();
 
 private:
+	uint16_t C[8]; // Stores calibration data
 
     float fluidDensity;
+
+    uint8_t crc4(uint16_t n_prom[]);
 };
 
 /**********************

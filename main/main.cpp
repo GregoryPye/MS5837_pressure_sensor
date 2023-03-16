@@ -58,7 +58,9 @@ extern "C" void app_main(void)
 
     ESP_LOGI(TAG, "i2c initialised");
 
-    MS5837.initialize();
-
-    ESP_LOGI(TAG, "MS5837 initialised");
+    if (!MS5837.initialize()) {
+        ESP_LOGW(TAG, "MS5837 initialisation failed");
+    } else {
+        ESP_LOGI(TAG, "MS5837 initialisation passed");
+    }
 }
