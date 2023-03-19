@@ -1,7 +1,10 @@
 # _MS5837 pressure sensor library_
 
-## Work in progress
-...
+## Purpose
+
+This is a library to allow use of the MS65837 pressure sensor wih the ESP-IDF for ESP32.  It is based on the Arduino library at
+
+https://github.com/senceryazici/BlueRobotics_MS5837_Library , but uses native ESP32 commands, including descheduling whilst coversions are in progress 
 
 ## Prerequisites
 
