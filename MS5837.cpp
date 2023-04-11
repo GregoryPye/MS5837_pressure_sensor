@@ -65,7 +65,7 @@ bool MS5837::initialize()
 	for ( uint8_t i = 0 ; i < 7 ; i++ ) {
         ESP_ERROR_CHECK(i2c0.readBytes(MS5837_ADDR,MS5837_PROM_READ+i*2, 2, data));
         C[i] = (data[0] << 8) | data[1];
-        ESP_LOGI(TAG, "C[%i] is %04X",i,C[i]);
+        // ESP_LOGI(TAG, "C[%i] is %04X",i,C[i]);
 	}
 
 	// Check CRC
@@ -77,10 +77,10 @@ bool MS5837::initialize()
 		return false;
 	}
 
-    ESP_LOGI(TAG, "c[0] is %04X",C[0]);
+    // ESP_LOGI(TAG, "c[0] is %04X",C[0]);
     uint8_t version = (C[0] >> 5) & 0x7F; // Extract the sensor version from PROM Word 0
     
-    ESP_LOGI(TAG, "Version is %02X",version);
+    // ESP_LOGI(TAG, "Version is %02X",version);
 
 	// Set _model according to the sensor version
 	if (version == MS5837_VERSION_02BA01)
