@@ -125,6 +125,20 @@ public:
     * @brief Take a reading
     * @details
     *  Reads the sensor, using oversampling as configured
+    * 
+    * @param current time in microseconds
+    *
+    * @note
+    * To avoid delay this gets called several times until the process completes
+    * which could be 40ms later at highest oversampling
+    *  
+    */    
+    int8_t read_nonblocking(int64_t time_us);
+
+    /*
+    * @brief Take a reading
+    * @details
+    *  Reads the sensor, using oversampling as configured
     *
     * @note
     * Can take up to 40ms to return for highest oversampling,
@@ -147,6 +161,8 @@ public:
 
 private:
 	uint8_t _model;
+    uint8_t _active_request = 0; // 0:No request, 1: Pressure request, 2: Temperature request, 3: Complete
+    int64_t _readStartTime; // The time for the start of each read cycle
 	uint16_t C[8]; // Stores calibration data
 	uint32_t D1, D2; // Stores the raw readings
     int32_t TEMP;

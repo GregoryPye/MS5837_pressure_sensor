@@ -54,6 +54,7 @@ bool MS5837::initialize()
 {
 	fluidDensity = MS5837_SEAWATER_DENSITY;
     seaLevelAirPressure = MS5837_DEFAULT_SEA_LEVEL_AIR_PRESSURE;
+	_active_request = 0;
 
     ESP_ERROR_CHECK(i2c0.writeByte(MS5837_ADDR,MS5837_RESET,0));
 
@@ -128,6 +129,45 @@ float MS5837::getSeaLevelAirPressure()
 {
     return (float) (seaLevelAirPressure / 100.0f);
 }
+
+int8_t MS5837::read_nonblocking(int64_t time_us)
+{
+	uint8_t data[3];
+
+	if (_active_request == 0) {
+    	// Get the pressure data
+    	ESP_ERROR_CHECK(i2c0.writeByte(MS5837_ADDR,MS5837_CONVERT_D1_256 + 2*_oversampling,0));
+		_readStartTime = time_us;
+		_active_request = 1;
+	}
+	else if (_active_request == 1) {
+		if (time_us > (_readStartTime + delay_lookup[_oversampling])) {
+			    ESP_ERROR_CHECK(i2c0.readBytes(MS5837_ADDR,MS5837_ADC_READ, 3, data));
+				D1 = 0;
+				D1 = (data[0] << 16) | (data[1] << 8) | data[2];
+
+				// Request the temperature data
+    			ESP_ERROR_CHECK(i2c0.writeByte(MS5837_ADDR,MS5837_CONVERT_D2_256 + 2*_oversampling,0));
+				_readStartTime = time_us;
+				_active_request = 2;
+		}
+	}
+	else if (_active_request == 2) {
+		if (time_us > (_readStartTime + delay_lookup[_oversampling])) {
+			ESP_ERROR_CHECK(i2c0.readBytes(MS5837_ADDR,MS5837_ADC_READ, 3, data));
+			D2 = 0;
+			D2 = (data[0] << 16) | (data[1] << 8) | data[2];
+
+			calculate();
+			_active_request = 3;
+		}
+	}
+	else if (_active_request == 3) {
+		_active_request = 0; // Used to reset after a read
+	}
+
+	return _active_request;
+} 
 
 bool MS5837::read()
 {
